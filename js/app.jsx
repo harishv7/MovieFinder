@@ -16,42 +16,58 @@ var App = React.createClass({
 			released: '',
 			runtime: '',
 			writer: '',
-			year: ''
+			year: '',
+			posterUrl: ''
 		};
 	},
 	handleOnKeyUp: function(event) {
 		// if user presses Enter, process data
 		if(event.which === 13) {
 			console.log(event.target.value);
-			var movieTitle = event.target.value;
-			var apiUrl = 'http://www.omdbapi.com/?t=' + movieTitle + '&y=&plot=full&r=json';
-			this.serverRequest = $.get(apiUrl, function (result) {
+			var input = event.target.value;
+			var apiUrl = 'http://www.omdbapi.com/?t=' + input + '&y=&plot=full&r=json';
+			var movieTitle='', imageUrl = '';
+
+			this.serverRequest = $.getJSON(apiUrl, function (result) {
 				console.log(result);
 				if(result.Response == "True") {
-					this.setState({
-						response: true,
-						title: result.Title,
-						actors: result.Actors,
-						awards: result.Awards,
-						country: result.Country,
-						director: result.Director,
-						genre: result.Genre,
-						language: result.Language,
-						metascore: result.Metascore,
-						plot: result.Plot,
-						poster: result.Poster,
-						rated: result.Rated,
-						released: result.Release,
-						runtime: result.Runtime,
-						writer: result.Writer,
-						year: result.Year
-					});
-				} else {
-					this.setState({
-						response: false
-					});
-				}
-			}.bind(this));
+					movieTitle = result.Title;
+					var imageUrl = '';
+					var apiUrl2 = 'https://api.themoviedb.org/3/search/movie?api_key=15d2ea6d0dc1d476efbca3eba2b9bbfb&query=' + encodeURIComponent(movieTitle) + '&callback=?';
+						console.log(apiUrl2);
+						
+						this.serverRequest2 = $.getJSON(apiUrl2, function (imageQuery) {
+							console.log(imageQuery);
+							console.log(imageQuery.results[0].poster_path);
+							imageUrl = 'http://image.tmdb.org/t/p/w500/' + imageQuery.results[0].poster_path;
+							console.log(imageUrl);
+
+							this.setState({
+							response: true,
+							title: result.Title,
+							actors: result.Actors,
+							awards: result.Awards,
+							country: result.Country,
+							director: result.Director,
+							genre: result.Genre,
+							language: result.Language,
+							metascore: result.Metascore,
+							plot: result.Plot,
+							poster: result.Poster,
+							rated: result.Rated,
+							released: result.Release,
+							runtime: result.Runtime,
+							writer: result.Writer,
+							year: result.Year,
+							posterUrl: imageUrl
+						});
+					}.bind(this));
+					} else {
+						this.setState({
+							response: false
+						});
+					}
+				}.bind(this));
 		}
 	},
 	render: function() {
@@ -75,9 +91,9 @@ var App = React.createClass({
 			<br />
 			{this.state.response ? <Movie title={this.state.title} actors={this.state.actors} awards={this.state.awards} country={this.state.country} director={this.state.director} 
 			genre={this.state.genre} language={this.state.language} metascore={this.state.metascore} plot={this.state.plot} poster={this.state.poster} rated={this.state.rated} 
-			released={this.state.released} runtime={this.state.runtime} writer={this.state.writer} year={this.state.year} documentId="movie" /> : null}
+			released={this.state.released} runtime={this.state.runtime} writer={this.state.writer} year={this.state.year} posterUrl={this.state.posterUrl} /> : null}
 			</div>
-		);
+			);
 	}
 });
 
@@ -101,12 +117,12 @@ var Movie = React.createClass({
 			<p>{this.props.plot}</p>
 			</div>
 			<div className="col-md-6"> 
-			<img src={this.props.poster} className="img-responsive" /> 
+			<img src={this.props.posterUrl} className="img-responsive" /> 
 			</div>
 			</div>
 			</div>
 			</div>
-		);
+			);
 	}
 });
 
